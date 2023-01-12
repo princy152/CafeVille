@@ -1,0 +1,11 @@
+server {
+  listen 3000 default_server;
+  listen [::]:3000 default_server;
+  root /var/www/carebeeAdmin;
+  index index.html;
+  # server_name http://43.204.6.247;
+  location / {
+    try_files $uri $uri/ /index.html?$args;
+  }
+}
+
