@@ -312,6 +312,7 @@ export const AddItem = () => {
                           <option value="">-- SELECT --</option>
                           <option value="Food">Food</option>
                           <option value="Beverage">Beverage</option>
+                          <option value="Alcohal">Alcohal</option>
                         </Input>
                       </FormGroup>
                       <Button style={{ textAlign: "center" }} type="submit">

@@ -27,6 +27,7 @@ import * as AiIcons from "react-icons/ai";
 import * as BiIcons from "react-icons/bi";
 import * as FaIcons from "react-icons/fa";
 import Select from "react-select";
+import { faLessThanEqual } from "@fortawesome/free-solid-svg-icons";
 
 function Dashboard() {
   const locale = "en";
@@ -47,6 +48,7 @@ function Dashboard() {
   const [custVal, setCustVal] = useState("");
   const [custId, setCustId] = useState("");
   const [assignBtn, setAssignBtn] = useState(true);
+  const [vatCharge, setVatCharge] = useState(false);
 
   const itemArr = [];
 
@@ -119,8 +121,12 @@ function Dashboard() {
     });
     setSelectedOption(data);
     if (subtotal > 0) {
-      if (validService) {
+      if (validService && !vatCharge) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
+      } else if (vatCharge && !validService) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
+      } else if (validService && vatCharge) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
       } else {
         total = subtotal * 0.05 + subtotal;
       }
@@ -148,8 +154,12 @@ function Dashboard() {
       subtotal += calcPrice;
     });
     if (subtotal > 0) {
-      if (validService) {
+      if (validService && !vatCharge) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
+      } else if (vatCharge && !validService) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
+      } else if (validService && vatCharge) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
       } else {
         total = subtotal * 0.05 + subtotal;
       }
@@ -177,8 +187,12 @@ function Dashboard() {
       subtotal += calcPrice;
     });
     if (subtotal > 0) {
-      if (validService) {
+      if (validService && !vatCharge) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
+      } else if (vatCharge && !validService) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
+      } else if (validService && vatCharge) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
       } else {
         total = subtotal * 0.05 + subtotal;
       }
@@ -198,27 +212,64 @@ function Dashboard() {
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
-      if (subtotal > 0) {
+      if (subtotal > 0 && vatCharge === false) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
-        setTotal(total);
+      } else if (subtotal > 0 && vatCharge === true) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
       } else {
         total = 0;
-        setTotal(total);
       }
+      setTotal(total);
       setSubtotal(subtotal);
-    } else if (data === false) {
+    } else if (data === false && selectedOption !== null) {
       selectedOption.forEach((val, index) => {
         let calcPrice = val.price * val.quantity;
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
-      if (subtotal > 0) {
+      if (subtotal > 0 && vatCharge === false) {
         total = subtotal * 0.05 + subtotal;
-        setTotal(total);
+      } else if (subtotal > 0 && vatCharge === true) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
       } else {
         total = 0;
-        setTotal(total);
       }
+      setTotal(total);
+      setSubtotal(subtotal);
+    }
+  };
+
+  const isVatCharge = (data) => {
+    setVatCharge(data);
+    if (selectedOption !== null && data === true) {
+      selectedOption.forEach((val, index) => {
+        let calcPrice = val.price * val.quantity;
+        selectedOption[index].currPrice = calcPrice;
+        subtotal += calcPrice;
+      });
+      if (subtotal > 0 && validService === true) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
+      } else if (subtotal > 0 && validService === false) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
+      } else {
+        total = 0;
+      }
+      setTotal(total);
+      setSubtotal(subtotal);
+    } else if (selectedOption !== null && data === false) {
+      selectedOption.forEach((val, index) => {
+        let calcPrice = val.price * val.quantity;
+        selectedOption[index].currPrice = calcPrice;
+        subtotal += calcPrice;
+      });
+      if (subtotal > 0 && validService === true) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
+      } else if (subtotal > 0 && validService === false) {
+        total = subtotal * 0.05 + subtotal;
+      } else {
+        total = 0;
+      }
+      setTotal(total);
       setSubtotal(subtotal);
     }
   };
@@ -395,6 +446,7 @@ function Dashboard() {
                           </Alert>
                         </Col>
                       </Row>
+                      <br></br>
                       <Form>
                         <FormGroup check inline>
                           <Input
@@ -402,6 +454,15 @@ function Dashboard() {
                             onClick={(e) => isService(e.target.checked)}
                           />
                           <Label check>Service Charge</Label>
+                        </FormGroup>
+                      </Form>
+                      <Form>
+                        <FormGroup check inline>
+                          <Input
+                            type="checkbox"
+                            onClick={(e) => isVatCharge(e.target.checked)}
+                          />
+                          <Label check>VAT Charge</Label>
                         </FormGroup>
                       </Form>
                       <br></br>
@@ -497,7 +558,7 @@ function Dashboard() {
                             COFFEE VILLE
                           </h5>
                           Tower B1-B2, Ground Floor Spaze i-Tech Park, Sector
-                          49, Gurugram, Haryana 122018 
+                          49, Gurugram, Haryana 122018
                           <br></br>
                           Order No. - <b>{OrderNo}</b>
                         </div>
@@ -605,6 +666,31 @@ function Dashboard() {
                                     }}
                                   >
                                     10%
+                                  </th>
+                                </tr>
+                              </>
+                            ) : null}
+                            {vatCharge ? (
+                              <>
+                                <tr>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      width: "50%",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    VAT Charge
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    20%
                                   </th>
                                 </tr>
                               </>
