@@ -44,21 +44,37 @@ export default {
       "user/fetchOrderList?page=" + currentPage + "&limit=" + limit
     );
   },
+  getFilterOrder(currentPage, limit, data) {
+    return Service.post(
+      "user/fetchFilterOrder?page=" + currentPage + "&limit=" + limit,
+      data
+    );
+  },
   getCustomerList(currentPage, limit) {
-    return Service.get(
+    return Service.post(
       "user/fetchCustomerList?page=" + currentPage + "&limit=" + limit
     );
   },
   createCustomer(data) {
     return Service.post("/user/createCustAccount", data);
-  },  
+  },
   updateCust(data) {
     return Service.post("/user/updateCustomer", data);
   },
   getCustomersList() {
     return Service.get("/user/fetchCustomersList/");
-  },  
-  assignBill(data){
+  },
+  assignBill(data) {
     return Service.post("/user/assignCustBill", data);
-  }
+  },
+  searchItem(data) {
+    return Service.get("/user/searchItemData/" + data);
+  },
+  addBulkItem(formData) {
+    return Service.put("/user/addBulkItemData/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };

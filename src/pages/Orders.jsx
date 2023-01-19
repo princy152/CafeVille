@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, FormGroup, Table } from "reactstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  FormGroup,
+  Table,
+  Label,
+} from "reactstrap";
 import ReactTooltip from "react-tooltip";
 import * as FaIcons from "react-icons/fa";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import Sidebar from "../components/Sidebar";
 import userServices from "../services/user";
 import ReactPaginate from "react-paginate";
 import moment from "moment";
 export const AddSize = () => {
   const [pageCount, setpageCount] = useState(1);
-  const [showList, setshowList] = useState(true);
-  const [inputDiv, setshowInput] = useState(false);
-  const [size, setSizeName] = useState("");
   const [orderList, setOrderList] = useState("");
-  const [fieldId, setFieldId] = useState(true);
-  const [action, setAction] = useState(true);
+  const [fromDate, setFromDate] = useState();
+  const [toDate, setToDate] = useState();
+
+  let handlePage = 1;
 
   const limit = 10;
   useEffect(() => {
@@ -34,9 +43,62 @@ export const AddSize = () => {
   };
 
   const handlePageClick = async (data) => {
-    const currentPage = data.selected + 1;
-    const usersFromServer = getOrders(currentPage, limit);
-    setOrderList(usersFromServer);
+    if (fromDate && toDate) {
+      console.log(data);
+      handlePage = data.selected + 1;
+      const usersFromServers = handleToDate(toDate);
+      setOrderList(usersFromServers);
+    } else {
+      const currentPage = data.selected + 1;
+      const usersFromServer = getOrders(currentPage, limit);
+      setOrderList(usersFromServer);
+    }
+  };
+
+  const handlefromDate = (e) => {
+    if (e > toDate) {
+      alert("From Date should be less than To Date...!");
+    } else {
+      setFromDate(e);
+      if (e !== undefined && toDate !== undefined) {
+        const filterObj = {
+          fromDate: e,
+          toDate: toDate,
+        };
+        userServices
+          .getFilterOrder(handlePage, limit, filterObj)
+          .then((response) => {
+            const filterSize = response.data.data.results;
+            const total = response.data.total;
+            setpageCount(Math.ceil(total / limit));
+            setOrderList(filterSize);
+          })
+          .catch(function (error) {});
+      }
+    }
+  };
+  const handleToDate = (e) => {
+    if (e < fromDate) {
+      alert("From Date should be less than To Date...!");
+    } else {
+      setToDate(e);
+      if (e !== undefined && fromDate !== undefined) {
+        const filterObj = {
+          fromDate: fromDate,
+          toDate: e,
+        };
+        userServices
+          .getFilterOrder(handlePage, limit, filterObj)
+          .then((response) => {
+            console.log("response", response);
+            const filterSize = response.data.data.results;
+            const total = response.data.total;
+            setpageCount(Math.ceil(total / limit));
+            setOrderList(filterSize);
+          })
+          .catch(function (error) {});
+      }
+    }
   };
 
   return (
@@ -47,6 +109,24 @@ export const AddSize = () => {
           <Col md={2} xs={1}></Col>
           <Col md={10} xs={10} className="form-container">
             <h6>Order List</h6>
+            <Row>
+              <Col md={2} xs={2}>
+                <Label>From Date</Label>
+                <DatePicker
+                  selected={fromDate}
+                  onChange={(e) => handlefromDate(e)}
+                />
+              </Col>
+              <Col md={2} xs={2}>
+                <Label>To Date</Label>
+                <DatePicker
+                  selected={toDate}
+                  onChange={(e) => handleToDate(e)}
+                />
+              </Col>
+              <Col md={4} xs={4}></Col>
+            </Row>
+
             <hr />
             <FormGroup>
               <Table responsive striped>

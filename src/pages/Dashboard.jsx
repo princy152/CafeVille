@@ -22,12 +22,14 @@ import {
 import swal from "sweetalert";
 import Sidebar from "../components/Sidebar";
 import userServices from "../services/user";
+import ReactTooltip from "react-tooltip";
 import * as IoIcons from "react-icons/io";
 import * as AiIcons from "react-icons/ai";
 import * as BiIcons from "react-icons/bi";
 import * as FaIcons from "react-icons/fa";
+import * as MdIcons from "react-icons/md";
+
 import Select from "react-select";
-import { faLessThanEqual } from "@fortawesome/free-solid-svg-icons";
 
 function Dashboard() {
   const locale = "en";
@@ -44,11 +46,18 @@ function Dashboard() {
   const [OrderNo, setOrderNo] = useState("");
   const [visible, setVisible] = useState(false);
   const [modal, setModal] = useState(false);
+  const [discountModal, setDiscountModal] = useState(false);
   const [customerList, setCustomerList] = useState(false);
   const [custVal, setCustVal] = useState("");
   const [custId, setCustId] = useState("");
   const [assignBtn, setAssignBtn] = useState(true);
   const [vatCharge, setVatCharge] = useState(false);
+  const [discount, setDiscountType] = useState();
+  const [disVal, setDiscountVal] = useState();
+  const [flat, setFlatOffer] = useState();
+  const [percentge, setPercentage] = useState();
+  const [flatDisc, setFlatDisc] = useState();
+  const [percentageDisc, setPercentageDisc] = useState();
 
   const itemArr = [];
 
@@ -119,6 +128,12 @@ function Dashboard() {
       data[index].currPrice = selectedPrice;
       subtotal += selectedPrice;
     });
+    if (percentageDisc) {
+      subtotal = subtotal - (subtotal * percentageDisc) / 100;
+    }
+    if (flatDisc) {
+      subtotal = subtotal - flatDisc;
+    }
     setSelectedOption(data);
     if (subtotal > 0) {
       if (validService && !vatCharge) {
@@ -153,6 +168,12 @@ function Dashboard() {
       selectedOption[index].currPrice = calcPrice;
       subtotal += calcPrice;
     });
+    if (percentageDisc) {
+      subtotal = subtotal - (subtotal * percentageDisc) / 100;
+    }
+    if (flatDisc) {
+      subtotal = subtotal - flatDisc;
+    }
     if (subtotal > 0) {
       if (validService && !vatCharge) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
@@ -186,6 +207,12 @@ function Dashboard() {
       selectedOption[index].currPrice = calcPrice;
       subtotal += calcPrice;
     });
+    if (percentageDisc) {
+      subtotal = subtotal - (subtotal * percentageDisc) / 100;
+    }
+    if (flatDisc) {
+      subtotal = subtotal - flatDisc;
+    }
     if (subtotal > 0) {
       if (validService && !vatCharge) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
@@ -212,6 +239,12 @@ function Dashboard() {
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
+      if (percentageDisc) {
+        subtotal = subtotal - (subtotal * percentageDisc) / 100;
+      }
+      if (flatDisc) {
+        subtotal = subtotal - flatDisc;
+      }
       if (subtotal > 0 && vatCharge === false) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
       } else if (subtotal > 0 && vatCharge === true) {
@@ -227,6 +260,12 @@ function Dashboard() {
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
+      if (percentageDisc) {
+        subtotal = subtotal - (subtotal * percentageDisc) / 100;
+      }
+      if (flatDisc) {
+        subtotal = subtotal - flatDisc;
+      }
       if (subtotal > 0 && vatCharge === false) {
         total = subtotal * 0.05 + subtotal;
       } else if (subtotal > 0 && vatCharge === true) {
@@ -247,6 +286,12 @@ function Dashboard() {
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
+      if (percentageDisc) {
+        subtotal = subtotal - (subtotal * percentageDisc) / 100;
+      }
+      if (flatDisc) {
+        subtotal = subtotal - flatDisc;
+      }
       if (subtotal > 0 && validService === true) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
       } else if (subtotal > 0 && validService === false) {
@@ -262,6 +307,12 @@ function Dashboard() {
         selectedOption[index].currPrice = calcPrice;
         subtotal += calcPrice;
       });
+      if (percentageDisc) {
+        subtotal = subtotal - (subtotal * percentageDisc) / 100;
+      }
+      if (flatDisc) {
+        subtotal = subtotal - flatDisc;
+      }
       if (subtotal > 0 && validService === true) {
         total = subtotal * 0.05 + subtotal * 0.1 + subtotal;
       } else if (subtotal > 0 && validService === false) {
@@ -290,8 +341,33 @@ function Dashboard() {
     }
   };
 
-  function custView(id) {
+  const itemDiscount = () => {
+    if (selectedOption !== null && selectedOption.length > 0) {
+      setDiscountModal(!discountModal);
+    } else {
+      setVisible(true);
+    }
+  };
+
+  const handleDiscountType = (selectedItems) => {
+    const options = [];
+    for (let i = 0; i < selectedItems.length; i++) {
+      options.push(selectedItems[i].value);
+    }
+    if (options[0] === "") {
+      setFlatOffer();
+      setPercentage();
+    }
+    setDiscountType(options);
+    setDiscountVal(options[0]);
+  };
+
+  function custView() {
     setModal(!modal);
+  }
+
+  function offerView() {
+    setDiscountModal(!discountModal);
   }
 
   const Print = () => {
@@ -353,6 +429,49 @@ function Dashboard() {
       .catch(function (error) {});
   };
 
+  const applyDiscount = () => {
+    if (flat) {
+      setPercentageDisc();
+      setFlatDisc(flat);
+    } else if (percentge) {
+      setFlatDisc();
+      setPercentageDisc(percentge);
+    }
+    setDiscountModal(!discountModal);
+    if (selectedOption !== null) {
+      selectedOption.forEach((val, index) => {
+        let calcPrice = val.price * val.quantity;
+        selectedOption[index].currPrice = calcPrice;
+        subtotal += calcPrice;
+      });
+      if (percentge) {
+        subtotal = subtotal - subtotal * (percentge / 100);
+      }
+      if (flat) {
+        subtotal = subtotal - flat;
+      }
+      if (subtotal > 0 && validService === true) {
+        total = subtotal * 0.05 + subtotal * 0.1 + subtotal * 0.2 + subtotal;
+      } else if (subtotal > 0 && validService === false) {
+        total = subtotal * 0.05 + subtotal * 0.2 + subtotal;
+      } else {
+        total = 0;
+      }
+      setTotal(total);
+      setSubtotal(subtotal);
+    }
+  };
+
+  const handleFlatOffer = (e) => {
+    setPercentage();
+    setFlatOffer(e);
+  };
+
+  const handlePercentage = (e) => {
+    setFlatOffer();
+    setPercentage(e);
+  };
+
   return (
     <>
       <iframe
@@ -405,7 +524,20 @@ function Dashboard() {
                             <FaIcons.FaUserTie />
                           </button>
                         </Col>
-                        <Col sm="3"></Col>
+                        <Col sm="3">
+                          <Button
+                            outline
+                            onClick={itemDiscount}
+                            className="shadow edit"
+                            data-tip
+                            data-for="discount"
+                          >
+                            <MdIcons.MdOutlineLocalOffer />
+                          </Button>{" "}
+                          <ReactTooltip id="discount" type="success">
+                            <span>Discount</span>
+                          </ReactTooltip>
+                        </Col>
                         <Col sm="4"></Col>
                         <Col sm="3">
                           <button
@@ -695,6 +827,56 @@ function Dashboard() {
                                 </tr>
                               </>
                             ) : null}
+                            {flatDisc ? (
+                              <>
+                                <tr>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      width: "50%",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    FLAT Discount
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    {flatDisc} &#8377;
+                                  </th>
+                                </tr>
+                              </>
+                            ) : null}
+                            {percentageDisc ? (
+                              <>
+                                <tr>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      width: "50%",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    Discount
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: "left",
+                                      fontFamily: "cursive",
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    {percentageDisc} %
+                                  </th>
+                                </tr>
+                              </>
+                            ) : null}
                             <tr>
                               <th
                                 style={{
@@ -786,6 +968,58 @@ function Dashboard() {
                 onClick={() => assignCustomerBill()}
               >
                 Assign Bill
+              </Button>
+            </ModalBody>
+            <ModalFooter></ModalFooter>
+          </Modal>
+          <Modal isOpen={discountModal} toggle={offerView}>
+            <ModalHeader toggle={offerView}> Select Discount </ModalHeader>
+            <ModalBody>
+              <FormGroup>
+                <Label>Discount Type</Label>
+                <Input
+                  type="select"
+                  value={discount || ""}
+                  onChange={(e) => {
+                    handleDiscountType(e.target.selectedOptions);
+                  }}
+                >
+                  <option value="">-- SELECT --</option>
+                  <option value="Percentage">Percentage</option>
+                  <option value="Flat">Flat</option>
+                </Input>
+              </FormGroup>
+              {disVal === "Percentage" ? (
+                <>
+                  <FormGroup>
+                    <Label>Percentage</Label>
+                    <Input
+                      type="text"
+                      onChange={(e) => handlePercentage(e.target.value)}
+                      name="Percentage"
+                      value={percentge || ""}
+                      placeholder="Percentage"
+                    />
+                  </FormGroup>
+                </>
+              ) : null}
+              {disVal === "Flat" ? (
+                <>
+                  <FormGroup>
+                    <Label>Flat Discount</Label>
+                    <Input
+                      type="text"
+                      onChange={(e) => handleFlatOffer(e.target.value)}
+                      name="Flat Discount"
+                      value={flat || ""}
+                      placeholder="Flat Discount"
+                    />
+                  </FormGroup>
+                </>
+              ) : null}
+              <br></br>
+              <Button color="info" onClick={() => applyDiscount()}>
+                Apply Discount
               </Button>
             </ModalBody>
             <ModalFooter></ModalFooter>
